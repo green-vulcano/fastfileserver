@@ -100,7 +100,7 @@ public class FileServer {
 				try {
 					String jsondata = req.getReader().lines().collect(Collectors.joining("\n"));				
 					
-					JSONObject media = new JSONObject(jsondata);
+					JSONObject media = new JSONObject(jsondata.trim());
 										
 					
 					Path mediaPath = Paths.get(resourceBaseDir, userId, mediaName.concat(".json"));				
