@@ -18,6 +18,8 @@
  */
 package com.greenvulcano.fastfileserver;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,18 +34,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.util.security.Constraint;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class FileServer {
 	
+	 private static String PRIVATE_REPOSITORY = "vault";
+	 private static String PUBLIC_REPOSITORY = "public";
+	 private static String RESOURCE = "media";
 	 private static String resourceBaseDir = ".";
-	
+	 	
 	 public static void main(String[] args) throws Exception {
 
 		    int serverPort = 8080;
@@ -59,22 +70,55 @@ public class FileServer {
 				e.printStackTrace();
 			}		    
 		    
-		    System.out.println("Starting Fast File Server for path "+resourceBaseDir+" on port"+serverPort);
+		    System.out.println("Starting Fast File Server for path "+resourceBaseDir+" on port "+serverPort);
 		    
-	        Server server = new Server(serverPort);
+	        Server server = new Server(serverPort);	        
+	       	       	        
+	        Constraint privateRead = new Constraint();
+	        privateRead.setName("private_read");
+	        privateRead.setAuthenticate(true);
+	        privateRead.setRoles(new String[]{"reader"});
+	        
+	        ConstraintMapping privateReadMapping = new ConstraintMapping();
+	        privateReadMapping.setPathSpec("/" + PRIVATE_REPOSITORY	+ "/*");
+	        privateReadMapping.setConstraint(privateRead);	        
+	        
+	        Constraint edit = new Constraint();
+	        edit.setName("private_edit");
+	        edit.setAuthenticate(true);
+	        edit.setRoles(new String[]{"editor"});
+	        
+	        ConstraintMapping editMapping = new ConstraintMapping();
+	        editMapping.setPathSpec("/"+ RESOURCE);
+	        editMapping.setConstraint(edit);
+	        
+	        List<ConstraintMapping> constraintMappings = new LinkedList<>();	        
+	        constraintMappings.add(privateReadMapping);
+	        constraintMappings.add(editMapping);
+	        
+	        LoginService loginService = new HashLoginService("ffs",
+	                "./ffs.realm.properties");
+	        server.addBean(loginService);
+	        	        
+	        ConstraintSecurityHandler security = new ConstraintSecurityHandler();
+	        security.setConstraintMappings(constraintMappings);
+	        security.setAuthenticator(new BasicAuthenticator());
+	        security.setLoginService(loginService);
+	        
+	        server.setHandler(security);
 
-	        ResourceHandler resource_handler = new ResourceHandler();
+	        ResourceHandler resourceHandler = new ResourceHandler();
 	       
-	        resource_handler.setDirectoriesListed(true);
-	        resource_handler.setWelcomeFiles(new String[]{ "index.html" });
-	        resource_handler.setResourceBase(resourceBaseDir);
+	        resourceHandler.setDirectoriesListed(true);
+	        resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
+	        resourceHandler.setResourceBase(resourceBaseDir);
 
 	        ServletHandler servletHandler = new ServletHandler();
-	        servletHandler.addServletWithMapping(FileServlet.class, "/media");
+	        servletHandler.addServletWithMapping(FileServlet.class, "/" + RESOURCE);
 	        
 	        HandlerList handlers = new HandlerList();
-	        handlers.setHandlers(new Handler[] { resource_handler, servletHandler });
-	        server.setHandler(handlers);
+	        handlers.setHandlers(new Handler[] { resourceHandler, servletHandler });
+	        security.setHandler(handlers);
 
 	        server.start();
 	        server.join();
@@ -90,6 +134,7 @@ public class FileServer {
 			
 			String contentType = req.getContentType();
 			String userId = req.getParameter("userid");
+			boolean isPublic = Boolean.valueOf(req.getParameter("public")).booleanValue();
 			
 			String mediaName = UUID.randomUUID().toString();
 			
@@ -103,7 +148,7 @@ public class FileServer {
 					JSONObject media = new JSONObject(jsondata.trim());
 										
 					
-					Path mediaPath = Paths.get(resourceBaseDir, userId, mediaName.concat(".json"));				
+					Path mediaPath = Paths.get(resourceBaseDir, isPublic? PUBLIC_REPOSITORY:PRIVATE_REPOSITORY ,userId, mediaName.concat(".json"));				
 					Files.createDirectories(mediaPath.getParent());
 					
 					Files.write(mediaPath, media.toString().getBytes(), StandardOpenOption.CREATE_NEW);
@@ -115,8 +160,7 @@ public class FileServer {
 			} else {
 				resp.setStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE_415);
 			}
-		}
-		
+		}		
 		
 		 
 	 }
