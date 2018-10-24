@@ -4,18 +4,18 @@
 
 	<groupId>it.greenvulcano</groupId>
 	<artifactId>fastfileserver</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.5.v20170502</version>
+			<version>9.4.12.v20180830 </version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>9.4.5.v20170502</version>
+			<version>9.4.12.v20180830 </version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
