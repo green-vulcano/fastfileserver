@@ -6,6 +6,11 @@
 	<artifactId>fastfileserver</artifactId>
 	<version>1.2</version>
 
+	<properties>
+		<sonar.organization>green-vulcano</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
