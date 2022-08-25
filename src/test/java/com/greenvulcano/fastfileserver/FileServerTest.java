@@ -16,6 +16,6 @@ public class FileServerTest {
 			System.out.println(e.getMessage());
 		}
 
-		assertTrue("FileServer Test test: " + test, test);
+		assertTrue("FileServer.testTest OK", test);
 	}
 }
