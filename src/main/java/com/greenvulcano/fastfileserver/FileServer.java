@@ -60,6 +60,11 @@ public class FileServer {
     private static String RESOURCE = "media";
     private static String resourceBaseDir = ".";
 
+	public static void test() throws Exception {
+		String test = "This is a method to test JUnit-jacoco-SonarCloud integration";
+		System.out.println(test);
+	}
+
     public static void main(String[] args) throws Exception {
 
         int serverPort = 8080;

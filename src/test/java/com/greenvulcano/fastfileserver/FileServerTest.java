@@ -7,16 +7,15 @@ import org.junit.Test;
 public class FileServerTest {
 	
 	@Test
-	public void mainTest() throws Exception {
+	public void testTest() throws Exception {
 		boolean test = true;
 		try {
-			// String[] args = {};
-			// FileServer.main(args);
+			FileServer.test();
 		} catch (Exception e) {
 			test = false;
 			System.out.println(e.getMessage());
 		}
 
-		assertTrue("FileServer Test main: " + test, test);
+		assertTrue("FileServer Test test: " + test, test);
 	}
 }
